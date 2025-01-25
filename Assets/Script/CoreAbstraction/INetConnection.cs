@@ -1,4 +1,6 @@
-public interface INetConnection
+using System;
+
+public interface INetConnection : IPacketHandler, IEquatable<INetConnection> 
 {
-    public bool Equals( INetConnection other );
+    public string ConnectionToString();
 }
