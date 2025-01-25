@@ -1,8 +1,10 @@
 using System;
+using UnityEngine;
 
+[Serializable]
 public class NetID
 {
-    private int m_id;
+    [SerializeField] private int m_id;
 
     public NetID( int id = 0 )
     {
