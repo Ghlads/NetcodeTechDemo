@@ -6,7 +6,7 @@ public class SimpleNetworkInterface : NetworkInterface
 {
     private List<INetConnection> m_connections = new List<INetConnection>();
 
-    public override void Connect( INetConnection connection )
+    public override void Connect( INetConnection connection, Packet discoverPacket )
     {
         if ( m_connections.Contains( connection ) )
         {
@@ -16,6 +16,13 @@ public class SimpleNetworkInterface : NetworkInterface
 
         m_connections.Add( connection );
         connection.Handle( GenericPacketUtils.ConnectionApprovalPacket( connection ) );
+        foreach ( INetConnection otherConnection in m_connections )
+        {
+            if ( otherConnection != connection )
+            {
+                otherConnection.Handle( discoverPacket );
+            }
+        }
     }
 
     public override void Disconnect( INetConnection connection, DisconnectionReason reason )
