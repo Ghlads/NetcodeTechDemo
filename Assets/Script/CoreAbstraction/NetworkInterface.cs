@@ -2,7 +2,7 @@ using UnityEngine;
 
 public abstract class NetworkInterface : ScriptableObject  
 {
-    public abstract void Connect( INetConnection connection );
+    public abstract void Connect( INetConnection connection, Packet discoverPacket );
            
     public abstract void Disconnect( INetConnection connection, DisconnectionReason reason );
            

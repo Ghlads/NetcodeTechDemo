@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &58299816
+--- !u!1 &65317171
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,8 +127,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 58299817}
-  - component: {fileID: 58299818}
+  - component: {fileID: 65317173}
+  - component: {fileID: 65317172}
   m_Layer: 0
   m_Name: NetManager
   m_TagString: Untagged
@@ -136,13 +136,30 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &58299817
+--- !u!114 &65317172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 65317171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06d705820ab81874eaf8814a25d9331d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ip: 2
+  m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
+  m_netFrequency: 0.1
+  m_isServer: 0
+  m_isConnected: 0
+--- !u!4 &65317173
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 58299816}
+  m_GameObject: {fileID: 65317171}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -151,23 +168,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &58299818
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 58299816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06d705820ab81874eaf8814a25d9331d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_ip: 0
-  m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
-  m_netFrequency: 0.1
-  m_isServer: 1
-  m_isConnected: 0
 --- !u!1 &122810026
 GameObject:
   m_ObjectHideFlags: 0
@@ -231,7 +231,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6a833c0c77c0e2248afec1340c90b104, type: 2}
+  - {fileID: 2100000, guid: 015087391dae8dd419b6a45a79e6546f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -403,4 +403,4 @@ SceneRoots:
   m_Roots:
   - {fileID: 1130848684}
   - {fileID: 122810030}
-  - {fileID: 58299817}
+  - {fileID: 65317173}

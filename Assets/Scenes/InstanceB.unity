@@ -150,6 +150,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ip: 1
   m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
+  m_netFrequency: 0.1
+  m_isServer: 0
+  m_isConnected: 0
 --- !u!4 &65317173
 Transform:
   m_ObjectHideFlags: 0
@@ -178,7 +181,7 @@ GameObject:
   - component: {fileID: 122810028}
   - component: {fileID: 122810027}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -228,7 +231,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 44f30b37ad5665c4aa80a4d6a7933ef2, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -267,7 +270,7 @@ Transform:
   m_GameObject: {fileID: 122810026}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.21, y: -2.2847028, z: -0.97}
+  m_LocalPosition: {x: 0, y: -2.2847028, z: -0.97}
   m_LocalScale: {x: 6, y: 0.2, z: 6}
   m_ConstrainProportionsScale: 0
   m_Children: []
