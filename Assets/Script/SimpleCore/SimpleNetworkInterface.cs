@@ -6,6 +6,17 @@ public class SimpleNetworkInterface : NetworkInterface
 {
     private List<INetConnection> m_connections = new List<INetConnection>();
 
+    public override void Broadcast( Packet packet, NetDeliveryMethod netDeliveryMethod = NetDeliveryMethod.Unreliable )
+    {
+        foreach ( INetConnection connection in m_connections )
+        {
+            if ( connection != packet.Sender )
+            {
+                connection.Handle( packet );
+            }
+        }
+    }
+
     public override void Connect( INetConnection connection, Packet discoverPacket )
     {
         if ( m_connections.Contains( connection ) )

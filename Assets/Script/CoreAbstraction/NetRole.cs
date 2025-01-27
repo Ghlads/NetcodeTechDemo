@@ -1,8 +1,7 @@
 public enum NetRole 
 {
     Authoritative,
-    AutonomousProxy,
-    SimulatedProxy,
+    Proxy,
 }
 
 public enum NetMode 

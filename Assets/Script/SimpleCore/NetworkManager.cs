@@ -14,6 +14,7 @@ public enum GameNetEventCode : byte
     Discovery = 0,
     JoinRequest = 1,
     JoinResponse = 2,
+    RepComponentData = 3,
 }
 
 public struct PacketTargetUnion 
@@ -45,6 +46,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
     [SerializeField] private NetworkInterface m_networkInterface = null;
     [SerializeField][Tooltip("frequence where queues are processed")] private float m_netFrequency = 0.1f;
     private float m_nextNetProcessTime = 0.0f;
+    private List<RepComponent> m_repComponents = new List<RepComponent>();
 
     private AsyncNetQueue<Packet> m_receivedPacketQueue = new AsyncNetQueue<Packet>();
     private AsyncNetQueue<PacketTargetUnion> m_toSendPacketQueue = new AsyncNetQueue<PacketTargetUnion>();
@@ -55,11 +57,15 @@ public class NetworkManager : MonoBehaviour, INetConnection
     private List<INetConnection> m_clients = new List<INetConnection>();
     public event Action<INetConnection> OnClientConnected;
 
+    public bool IsServer => m_isServer;
+
     //client variables
     [Header( "Client" )]
     [SerializeField] private bool m_isConnected = false;
     private INetConnection m_server = null;
     public event Action OnConnected;
+
+    public bool IsConnected => m_isConnected;
 
     private void Awake()
     {
@@ -79,8 +85,28 @@ public class NetworkManager : MonoBehaviour, INetConnection
         {
             m_nextNetProcessTime = Time.time + m_netFrequency;
             // process received packets first these packet might enqueue new packet to send
-            ProcessReceivedPackets(); 
+            ProcessReceivedPackets();
+            ProcessComponentToReplicate();
             ProcessToSendPackets();
+        }
+    }
+
+    private void ProcessComponentToReplicate()
+    {
+        foreach ( RepComponent repComponent in m_repComponents )
+        {
+            if ( repComponent.NetRole == NetRole.Authoritative && repComponent.ReplicateOnNetUpdate )
+            {
+                if ( m_isServer )
+                {
+                    BroadcastToQueue( repComponent.OnReplicateValues() );
+                }
+                else
+                {
+                    SendToQueue( m_server, repComponent.OnReplicateValues() );
+                }
+
+            }
         }
     }
 
@@ -95,7 +121,14 @@ public class NetworkManager : MonoBehaviour, INetConnection
         do
         {
             PacketTargetUnion packetTarget = m_toSendPacketQueue.ActiveQueue.Dequeue();
-            m_networkInterface.Send( packetTarget.Connection, packetTarget.Packet );
+            if ( packetTarget.Connection != null )
+            {
+                m_networkInterface.Send( packetTarget.Connection, packetTarget.Packet );
+            }
+            else
+            {
+                m_networkInterface.Broadcast( packetTarget.Packet );
+            }
         }
         while ( m_toSendPacketQueue.ActiveQueue.Count > 0 );
     }
@@ -119,6 +152,27 @@ public class NetworkManager : MonoBehaviour, INetConnection
     {
         m_toSendPacketQueue.PendingQueue.Enqueue( new PacketTargetUnion { Connection = target, Packet = packet } );
     }
+
+    private void BroadcastToQueue( Packet packet )
+    {
+        m_toSendPacketQueue.PendingQueue.Enqueue( new PacketTargetUnion { Connection = null, Packet = packet } );
+    }
+
+
+    public void AddRepComponent( RepComponent repComponent )
+    {
+        if ( repComponent != null && !m_repComponents.Contains( repComponent ) )
+        {
+            m_repComponents.Add( repComponent );
+        }
+    }
+
+
+    public void RemoveRepComponent( RepComponent repComponent ) 
+    {
+        m_repComponents.Remove( repComponent );
+    }
+
 
     public string ConnectionToString()
     {
@@ -163,10 +217,44 @@ public class NetworkManager : MonoBehaviour, INetConnection
                 case GameNetEventCode.JoinResponse:
                     HandleJoinResponse( packet );
                     break;
+                case GameNetEventCode.RepComponentData:
+                    HandleRepComponent( packet );
+                    break;
                 default:
                     break;
             }
         }
+    }
+
+    private void HandleRepComponent( Packet packet )
+    {
+        NetID netID = RepComponent.GetNetID( packet );
+        if ( netID == NetID.Invalid )
+        {
+            return;
+        }
+
+        foreach ( RepComponent repComponent in m_repComponents )
+        {
+            if ( repComponent.NetID == netID && repComponent.NetRole == NetRole.Proxy )
+            {
+                repComponent.OnValuesReplicated( packet );
+                if ( IsServer ) // Since client can't send packet directly to other client server has to broadcast info to every one else
+                {
+                    foreach ( INetConnection client in m_clients )
+                    {
+                        if ( !client.Equals( packet.Sender ) && !client.Equals( this ) )
+                        {
+                            SendToQueue( client, packet );
+                        }
+                    }
+                }
+
+                return;
+            }
+        }
+
+        Debug.LogWarning( "RepComponent not found might be a desync somewhere" );
     }
 
     private void HandleDiscoveryPacket( Packet packet )

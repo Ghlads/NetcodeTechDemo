@@ -2,8 +2,9 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class NetID
+public struct NetID
 {
+    public static NetID Invalid => new NetID( -1 );
     [SerializeField] private int m_id;
 
     public NetID( int id = 0 )
@@ -34,5 +35,15 @@ public class NetID
     public static bool operator !=( NetID a, NetID b )
     {
         return !( a == b );
+    }
+
+    public static explicit operator byte( NetID id )
+    {
+        return ( byte )id.m_id;
+    }
+
+    public static explicit operator NetID( byte id )
+    {
+        return new NetID( ( int )id );
     }
 }
