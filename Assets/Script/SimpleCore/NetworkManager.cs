@@ -45,6 +45,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
     [SerializeField] private int m_ip = 0;
     [SerializeField] private NetworkInterface m_networkInterface = null;
     [SerializeField][Tooltip("frequence where queues are processed")] private float m_netFrequency = 0.1f;
+    [SerializeField][Tooltip("percentage of packet dropped")] private int m_packetLoss = 0;
     private float m_nextNetProcessTime = 0.0f;
     private List<RepComponent> m_repComponents = new List<RepComponent>();
 
@@ -121,6 +122,11 @@ public class NetworkManager : MonoBehaviour, INetConnection
         do
         {
             PacketTargetUnion packetTarget = m_toSendPacketQueue.ActiveQueue.Dequeue();
+            if ( m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+            {
+                continue;
+            }
+
             if ( packetTarget.Connection != null )
             {
                 m_networkInterface.Send( packetTarget.Connection, packetTarget.Packet );
@@ -143,7 +149,13 @@ public class NetworkManager : MonoBehaviour, INetConnection
 
         do
         {
-            HandleFromQueue( m_receivedPacketQueue.ActiveQueue.Dequeue() );
+            Packet packet = m_receivedPacketQueue.ActiveQueue.Dequeue();
+            if ( m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+            {
+                continue;
+            }
+
+            HandleFromQueue( packet );
         }
         while ( m_receivedPacketQueue.ActiveQueue.Count > 0 );
     }
