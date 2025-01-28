@@ -166,6 +166,7 @@ MonoBehaviour:
   m_ip: 0
   m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
   m_netFrequency: 0
+  m_packetLoss: 30
   m_isServer: 1
   m_isConnected: 0
 --- !u!1 &122810026
