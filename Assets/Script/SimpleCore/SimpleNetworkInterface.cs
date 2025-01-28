@@ -6,7 +6,7 @@ public class SimpleNetworkInterface : NetworkInterface
 {
     private List<INetConnection> m_connections = new List<INetConnection>();
 
-    public override void Broadcast( Packet packet, NetDeliveryMethod netDeliveryMethod = NetDeliveryMethod.Unreliable )
+    public override void Broadcast( Packet packet )
     {
         foreach ( INetConnection connection in m_connections )
         {
@@ -17,23 +17,16 @@ public class SimpleNetworkInterface : NetworkInterface
         }
     }
 
-    public override void Connect( INetConnection connection, Packet discoverPacket )
+    public override void Connect( INetConnection connection )
     {
         if ( m_connections.Contains( connection ) )
         {
-            connection.Handle( GenericPacketUtils.ConnectionDenialPacket( connection, "Already connected" ) );
+            connection.Handle( GenericPacketUtils.ConnectionDenialPacket( connection, "Already connected", NetDeliveryMethod.Reliable ) );
             return;
         }
 
         m_connections.Add( connection );
-        connection.Handle( GenericPacketUtils.ConnectionApprovalPacket( connection ) );
-        foreach ( INetConnection otherConnection in m_connections )
-        {
-            if ( otherConnection != connection )
-            {
-                otherConnection.Handle( discoverPacket );
-            }
-        }
+        connection.Handle( GenericPacketUtils.ConnectionApprovalPacket( connection, NetDeliveryMethod.Reliable ) );
     }
 
     public override void Disconnect( INetConnection connection, DisconnectionReason reason )
@@ -41,15 +34,15 @@ public class SimpleNetworkInterface : NetworkInterface
         if ( m_connections.Contains( connection ) )
         {
             m_connections.Remove( connection );
-            connection.Handle( GenericPacketUtils.DisconnectionNoticePacket( connection, reason ) );
+            connection.Handle( GenericPacketUtils.DisconnectionNoticePacket( connection, reason, NetDeliveryMethod.Reliable ) );
         }
         else
         {
-            connection.Handle( GenericPacketUtils.ErrorPacket( connection, ErrorCode.GenericError, "Not connected" ) );
+            connection.Handle( GenericPacketUtils.ErrorPacket( connection, ErrorCode.GenericError, "Not connected", NetDeliveryMethod.Reliable ) );
         }
     }
 
-    public override void Send( INetConnection connection, Packet packet, NetDeliveryMethod netDeliveryMethod = NetDeliveryMethod.Unreliable )
+    public override void Send( INetConnection connection, Packet packet )
     {
         if ( m_connections.Contains( connection ) )
         {
@@ -57,7 +50,7 @@ public class SimpleNetworkInterface : NetworkInterface
         }
         else
         {
-            packet.Sender.Handle( GenericPacketUtils.ErrorPacket( connection, ErrorCode.GenericError, "Target not connected" ) );
+            packet.Sender.Handle( GenericPacketUtils.ErrorPacket( connection, ErrorCode.GenericError, "Target not connected", NetDeliveryMethod.Reliable ) );
         }
     }
 }
