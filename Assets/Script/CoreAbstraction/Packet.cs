@@ -15,17 +15,19 @@ public enum PacketType
 
 public class Packet
 {
+    private NetDeliveryMethod m_deliveryMethod;
     private PacketType m_type;
     private INetConnection m_senderID;
     private long m_timeStamp;
     private byte[] m_bytes;
 
+    public NetDeliveryMethod DeliveryMethod => m_deliveryMethod;
     public PacketType Type => m_type;
     public INetConnection Sender => m_senderID;
     public long TimeStamp => m_timeStamp;
     public byte[] Bytes => m_bytes;
 
-    public Packet( PacketType type, INetConnection sender, byte[] bytes )
+    public Packet( PacketType type, INetConnection sender, byte[] bytes, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable )
     {
         if ( sender == default )
         {
@@ -37,6 +39,7 @@ public class Packet
             Debug.LogError( "Bytes can't be null or empty for data packet, there is nothing send" );
         }
 
+        m_deliveryMethod = deliveryMethod;
         m_type = type;
         m_senderID = sender;
         m_bytes = bytes;
@@ -138,33 +141,33 @@ public static class GenericPacketUtils
         return str;
     }
 
-    public static Packet ErrorPacket( INetConnection sender, ErrorCode errorCode, string message )
+    public static Packet ErrorPacket( INetConnection sender, ErrorCode errorCode, string message, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable )
     {
         byte[] bytes = new byte[1 + message.Length];
         bytes[0] = ( byte )errorCode;
         CopyAsBytes( message, bytes, 1 );
-        return new Packet( PacketType.Error, sender, bytes );
+        return new Packet( PacketType.Error, sender, bytes, deliveryMethod );
     }
 
-    public static Packet ConnectionApprovalPacket( INetConnection sender )
+    public static Packet ConnectionApprovalPacket( INetConnection sender, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable )
     {
         byte[] bytes = new byte[1];
         bytes[0] = 1;
-        return new Packet( PacketType.ConnectionResponse, sender, bytes );
+        return new Packet( PacketType.ConnectionResponse, sender, bytes, deliveryMethod );
     }
 
-    public static Packet ConnectionDenialPacket( INetConnection sender, string reason )
+    public static Packet ConnectionDenialPacket( INetConnection sender, string reason, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable )
     {
         byte[] bytes = new byte[1 + reason.Length];
         bytes[0] = 0;
         CopyAsBytes( reason, bytes, 1 );
-        return new Packet( PacketType.ConnectionResponse, sender, bytes );
+        return new Packet( PacketType.ConnectionResponse, sender, bytes, deliveryMethod );
     }
 
-    public static Packet DisconnectionNoticePacket( INetConnection sender, DisconnectionReason code )
+    public static Packet DisconnectionNoticePacket( INetConnection sender, DisconnectionReason code, NetDeliveryMethod deliveryMethod = NetDeliveryMethod.Unreliable )
     {
         byte[] bytes = new byte[] { ( byte )code };
-        return new Packet( PacketType.DisconnectionResponse, sender, bytes );
+        return new Packet( PacketType.DisconnectionResponse, sender, bytes, deliveryMethod );
     }
 }
 

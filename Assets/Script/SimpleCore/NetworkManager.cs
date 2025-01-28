@@ -21,6 +21,7 @@ public struct PacketTargetUnion
 {
     public INetConnection Connection;
     public Packet Packet;
+    public bool IsGlobalBroadcast;
 }
 
 public class AsyncNetQueue<T> 
@@ -71,13 +72,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
     private void Awake()
     {
         m_nextNetProcessTime = Time.time;
-        byte[] bytes = new byte[]
-        {
-            ( byte )GameNetEventCode.Discovery
-            , (byte )(m_isServer ? NetMode.Server : NetMode.Client)
-        };
-        Packet discoverPacket = new( PacketType.Data, this, bytes );
-        m_networkInterface.Connect( this, discoverPacket );
+        m_networkInterface.Connect( this );
     }
 
     private void Update()
@@ -122,7 +117,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
         do
         {
             PacketTargetUnion packetTarget = m_toSendPacketQueue.ActiveQueue.Dequeue();
-            if ( m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+            if ( packetTarget.Packet.DeliveryMethod == NetDeliveryMethod.Unreliable && m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
             {
                 continue;
             }
@@ -131,9 +126,16 @@ public class NetworkManager : MonoBehaviour, INetConnection
             {
                 m_networkInterface.Send( packetTarget.Connection, packetTarget.Packet );
             }
-            else
+            else if ( packetTarget.IsGlobalBroadcast )
             {
                 m_networkInterface.Broadcast( packetTarget.Packet );
+            }
+            else
+            {
+                foreach ( INetConnection client in m_clients )
+                {
+                    m_networkInterface.Send( client, packetTarget.Packet );
+                }
             }
         }
         while ( m_toSendPacketQueue.ActiveQueue.Count > 0 );
@@ -150,7 +152,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
         do
         {
             Packet packet = m_receivedPacketQueue.ActiveQueue.Dequeue();
-            if ( m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+            if ( packet.DeliveryMethod == NetDeliveryMethod.Unreliable && m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
             {
                 continue;
             }
@@ -170,6 +172,10 @@ public class NetworkManager : MonoBehaviour, INetConnection
         m_toSendPacketQueue.PendingQueue.Enqueue( new PacketTargetUnion { Connection = null, Packet = packet } );
     }
 
+    private void BroadcastToEveryone( Packet packet )
+    {
+        m_toSendPacketQueue.PendingQueue.Enqueue( new PacketTargetUnion { Connection = null, Packet = packet, IsGlobalBroadcast = true } );
+    }
 
     public void AddRepComponent( RepComponent repComponent )
     {
@@ -198,7 +204,6 @@ public class NetworkManager : MonoBehaviour, INetConnection
 
     public void Handle( Packet packet )
     {
-        Debug.Log( "Packet received" );
         m_receivedPacketQueue.PendingQueue.Enqueue( packet );
     }
 
@@ -213,6 +218,21 @@ public class NetworkManager : MonoBehaviour, INetConnection
         {
             Debug.LogError( GenericPacketUtils.GetString( packet ) );
             return;
+        }
+
+        if ( packet.Type == PacketType.ConnectionResponse )
+        {
+            if ( packet.Bytes[0] == 1 )
+            {
+                byte[] bytes = new byte[]
+                {
+                    ( byte )GameNetEventCode.Discovery
+                    , (byte )(m_isServer ? NetMode.Server : NetMode.Client)
+                };
+
+                BroadcastToEveryone( new( PacketType.Data, this, bytes, NetDeliveryMethod.Reliable ) );
+                return;
+            }
         }
 
         if ( packet.Type == PacketType.Data )
@@ -301,9 +321,13 @@ public class NetworkManager : MonoBehaviour, INetConnection
         }
 
         CommonResponse response = m_clients.Contains( packet.Sender ) ? CommonResponse.Denied : CommonResponse.Accepted;
-        m_clients.Add( packet.Sender );
-        OnClientConnected?.Invoke( packet.Sender );
-        Debug.Log( "Client connected" );
+        if ( response == CommonResponse.Accepted )
+        {
+            m_clients.Add( packet.Sender );
+            OnClientConnected?.Invoke( packet.Sender );
+            Debug.Log( "Client connected" );
+        }
+
         byte[] bytes = new byte[]
         {
             ( byte )GameNetEventCode.JoinResponse,
@@ -316,6 +340,11 @@ public class NetworkManager : MonoBehaviour, INetConnection
     private void HandleJoinResponse( Packet packet )
     {
         if ( m_isServer )
+        {
+            return;
+        }
+
+        if ( m_isConnected )
         {
             return;
         }
