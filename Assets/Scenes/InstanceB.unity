@@ -150,8 +150,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ip: 1
   m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
-  m_netFrequency: 0.05
-  m_packetLoss: 5
+  m_netFrequency: 0.001
+  m_packetLoss: 2
   m_isServer: 0
   m_isConnected: 0
 --- !u!4 &65317173
@@ -381,6 +381,7 @@ MonoBehaviour:
     m_id: 0
   m_replicateOnNetUpdate: 0
   m_netRole: 1
+  m_useBadSyncMethod: 0
 --- !u!1 &1130848682
 GameObject:
   m_ObjectHideFlags: 0
