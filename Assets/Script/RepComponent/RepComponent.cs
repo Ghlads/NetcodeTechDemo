@@ -14,10 +14,53 @@ public abstract class RepComponent : MonoBehaviour
     [SerializeField] private bool m_replicateOnNetUpdate = false;
     [SerializeField] private NetRole m_netRole = NetRole.Authoritative;
 
-    protected NetworkManager NetworkManager => m_networkManager;
-    public NetID NetID => m_netID;
-    public bool ReplicateOnNetUpdate => m_replicateOnNetUpdate;
-    public NetRole NetRole => m_netRole;
+    public NetworkManager NetworkManager
+    {
+        get
+        {
+            return m_networkManager;
+        }
+        set
+        {
+            m_networkManager = value;
+        }
+    }
+
+    public NetID NetID
+    {
+        get
+        {
+            return m_netID;
+        }
+        set
+        {
+            m_netID = value;
+        }
+    }
+
+    public bool ReplicateOnNetUpdate
+    {
+        get
+        {
+            return m_replicateOnNetUpdate;
+        }
+        set 
+        {
+            m_replicateOnNetUpdate = value;
+        }
+    }
+
+    public NetRole NetRole
+    {
+        get
+        {
+            return m_netRole;
+        }
+        set
+        {
+            m_netRole = value;
+        }
+    }
 
     public static NetID GetNetID( Packet packet )
     {

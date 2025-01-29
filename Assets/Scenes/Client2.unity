@@ -148,12 +148,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06d705820ab81874eaf8814a25d9331d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ip: 1
+  m_ip: 2
   m_networkInterface: {fileID: 11400000, guid: 37cb87d575b26964aa4ffd2c9877811f, type: 2}
   m_netFrequency: 0
   m_packetLoss: 0
+  m_material: {fileID: 2100000, guid: 015087391dae8dd419b6a45a79e6546f, type: 2}
+  m_layerMask:
+    serializedVersion: 2
+    m_Bits: 256
+  m_netPrefabSetupController: {fileID: 6995029670428160181, guid: 1af805b293698884baafdd946503c279, type: 3}
+  m_prefabSpawnPoint: {fileID: 1255617618}
   m_isServer: 0
   m_isConnected: 0
+  m_debug_packet_received: 0
 --- !u!4 &65317173
 Transform:
   m_ObjectHideFlags: 0
@@ -166,7 +173,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1255617618}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &122810026
@@ -232,7 +240,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 44f30b37ad5665c4aa80a4d6a7933ef2, type: 2}
+  - {fileID: 2100000, guid: 015087391dae8dd419b6a45a79e6546f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -289,7 +297,7 @@ GameObject:
   - component: {fileID: 158565709}
   - component: {fileID: 158565708}
   - component: {fileID: 158565711}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GoodReplication
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -319,7 +327,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 44f30b37ad5665c4aa80a4d6a7933ef2, type: 2}
+  - {fileID: 2100000, guid: 015087391dae8dd419b6a45a79e6546f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -394,7 +402,7 @@ GameObject:
   - component: {fileID: 939873549}
   - component: {fileID: 939873548}
   - component: {fileID: 939873547}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: BadReplication
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -416,8 +424,8 @@ MonoBehaviour:
   m_networkManager: {fileID: 65317172}
   m_netID:
     m_id: 1
-  m_replicateOnNetUpdate: 0
-  m_netRole: 1
+  m_replicateOnNetUpdate: 1
+  m_netRole: 0
   m_useBadSyncMethod: 1
 --- !u!23 &939873548
 MeshRenderer:
@@ -442,7 +450,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 44f30b37ad5665c4aa80a4d6a7933ef2, type: 2}
+  - {fileID: 2100000, guid: 015087391dae8dd419b6a45a79e6546f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -480,7 +488,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 939873546}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.1, y: -1.23, z: 2.67}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -608,6 +616,37 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 0
+--- !u!1 &1255617617
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1255617618}
+  m_Layer: 0
+  m_Name: prefabSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1255617618
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1255617617}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 65317173}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -615,5 +654,5 @@ SceneRoots:
   - {fileID: 1130848684}
   - {fileID: 122810030}
   - {fileID: 65317173}
-  - {fileID: 939873550}
   - {fileID: 158565710}
+  - {fileID: 939873550}

@@ -15,6 +15,7 @@ public enum GameNetEventCode : byte
     JoinRequest = 1,
     JoinResponse = 2,
     RepComponentData = 3,
+    CreateCube = 4,
 }
 
 public struct PacketTargetUnion 
@@ -47,11 +48,19 @@ public class NetworkManager : MonoBehaviour, INetConnection
     [SerializeField] private NetworkInterface m_networkInterface = null;
     [SerializeField][Tooltip("frequence where queues are processed")] private float m_netFrequency = 0.1f;
     [SerializeField][Tooltip("percentage of packet dropped")] private int m_packetLoss = 0;
+    [SerializeField] private Material m_material = null;
+    [SerializeField] private LayerMask m_layerMask = 0;
+    [SerializeField] private NetPrefabSetupController m_netPrefabSetupController = null;
+    [SerializeField] private Transform m_prefabSpawnPoint = null;
+
     private float m_nextNetProcessTime = 0.0f;
     private List<RepComponent> m_repComponents = new List<RepComponent>();
 
     private AsyncNetQueue<Packet> m_receivedPacketQueue = new AsyncNetQueue<Packet>();
     private AsyncNetQueue<PacketTargetUnion> m_toSendPacketQueue = new AsyncNetQueue<PacketTargetUnion>();
+
+    public Material Material => m_material;
+    public LayerMask LayerMask => m_layerMask;
 
     //server variables
     [Header( "Server" )]
@@ -68,6 +77,10 @@ public class NetworkManager : MonoBehaviour, INetConnection
     public event Action OnConnected;
 
     public bool IsConnected => m_isConnected;
+
+    [Header( "Debug" )]
+    [SerializeField] private bool m_debug_packet_received = false;
+
 
     private void Awake()
     {
@@ -152,9 +165,13 @@ public class NetworkManager : MonoBehaviour, INetConnection
         do
         {
             Packet packet = m_receivedPacketQueue.ActiveQueue.Dequeue();
-            if ( packet.DeliveryMethod == NetDeliveryMethod.Unreliable && m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+
+            if ( packet.DeliveryMethod == NetDeliveryMethod.Unreliable )
             {
-                continue;
+                if ( m_packetLoss != 0 && UnityEngine.Random.Range( 0, 100 ) < m_packetLoss ) // simulate packet loss
+                {
+                    continue;
+                }
             }
 
             HandleFromQueue( packet );
@@ -204,6 +221,11 @@ public class NetworkManager : MonoBehaviour, INetConnection
 
     public void Handle( Packet packet )
     {
+        if ( m_debug_packet_received )
+        {
+            Debug.Log( $"ip : {ConnectionToString()} received packet type : {packet.Type} from ip : {packet.Sender.ConnectionToString()} as {packet.DeliveryMethod}" );
+        }
+
         m_receivedPacketQueue.PendingQueue.Enqueue( packet );
     }
 
@@ -252,6 +274,9 @@ public class NetworkManager : MonoBehaviour, INetConnection
                 case GameNetEventCode.RepComponentData:
                     HandleRepComponent( packet );
                     break;
+                case GameNetEventCode.CreateCube:
+                    HandleCreateCubePacket( packet );
+                    break;
                 default:
                     break;
             }
@@ -273,11 +298,12 @@ public class NetworkManager : MonoBehaviour, INetConnection
                 repComponent.OnValuesReplicated( packet );
                 if ( IsServer ) // Since client can't send packet directly to other client server has to broadcast info to every one else
                 {
+                    Packet newPacket = new Packet( packet.Type, this, packet.Bytes );
                     foreach ( INetConnection client in m_clients )
                     {
                         if ( !client.Equals( packet.Sender ) && !client.Equals( this ) )
                         {
-                            SendToQueue( client, packet );
+                            SendToQueue( client, newPacket );
                         }
                     }
                 }
@@ -301,14 +327,14 @@ public class NetworkManager : MonoBehaviour, INetConnection
                     ( byte )GameNetEventCode.Discovery,
                     ( byte )NetMode.Server
                 };
-                SendToQueue( packet.Sender, new Packet( PacketType.Data, this, bytes ) );
+                SendToQueue( packet.Sender, new Packet( PacketType.Data, this, bytes, NetDeliveryMethod.Reliable ) );
             }
         }
         else
         {
             if ( !senderIsClient && !m_isConnected )
             {
-                SendToQueue( packet.Sender, new Packet( PacketType.Data, this, new byte[] { ( byte )GameNetEventCode.JoinRequest } ) );
+                SendToQueue( packet.Sender, new Packet( PacketType.Data, this, new byte[] { ( byte )GameNetEventCode.JoinRequest }, NetDeliveryMethod.Reliable ) );
             }
         }
     }
@@ -333,7 +359,7 @@ public class NetworkManager : MonoBehaviour, INetConnection
             ( byte )GameNetEventCode.JoinResponse,
             ( byte )response
         };
-        SendToQueue( packet.Sender, new Packet( PacketType.Data, this, bytes ) );
+        SendToQueue( packet.Sender, new Packet( PacketType.Data, this, bytes, NetDeliveryMethod.Reliable ) );
 
     }
 
@@ -341,11 +367,13 @@ public class NetworkManager : MonoBehaviour, INetConnection
     {
         if ( m_isServer )
         {
+            Debug.LogWarning( "Server should not receive JoinResponse" );
             return;
         }
 
         if ( m_isConnected )
         {
+            Debug.LogWarning( $"Already connected, ip : {ConnectionToString()}" );
             return;
         }
 
@@ -361,5 +389,27 @@ public class NetworkManager : MonoBehaviour, INetConnection
         {
             Debug.LogError( "Connection denied" );
         }
+    }
+
+    private void HandleCreateCubePacket( Packet packet )
+    {
+        NetID netID = ( NetID )packet.Bytes[1];
+        NetPrefabSetup netPrefabSetup = new NetPrefabSetup( netID, this );
+        Instantiate( m_netPrefabSetupController, parent: m_prefabSpawnPoint ).NetInit( netPrefabSetup );
+        if ( m_isServer )
+        {
+            Packet newPacket = new Packet( packet.Type, this, packet.Bytes ); // specific unreliable for presentation purposes. Should be reliable since it's an important and non redondant info
+            BroadcastToQueue( packet );
+        }
+    }
+
+    public void SendPacketToServer( Packet packet )
+    {
+        if ( m_isServer )
+        {
+            return;
+        }
+
+        SendToQueue( m_server, packet );
     }
 }
